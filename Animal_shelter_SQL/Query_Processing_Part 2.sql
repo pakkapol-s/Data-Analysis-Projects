@@ -1,7 +1,9 @@
 Advanced SQL - Query Processing Part 2
 
-Advanced SQL: Logical Query Processing, Part 2
-Subqueries
+Chapter 1 
+Video: 1 Subqueries
+
+-- show adoption rows including fees
 
 
 -- Get MAX adoption fee
@@ -21,27 +23,6 @@ SELECT	*,
 		(((SELECT MAX(Adoption_Fee) FROM Adoptions) - Adoption_Fee) * 100)
 			/ (SELECT MAX(Adoption_Fee) FROM Adoptions) AS Discount_Percent
 FROM	Adoptions;
-
--- Shorten with WITH clause
-WITH Adoptions_and_Max_Fee
-AS
-(
-SELECT	*,
-		(SELECT MAX(Adoption_Fee) FROM Adoptions) AS Max_Fee
-FROM	Adoptions
-)
-SELECT	*, 
-		Max_Fee,
-		(((Max_Fee - Adoption_Fee) * 100) / Max_Fee) AS Discount_Percent
-FROM	Adoptions_and_Max_Fee;
-
--- Use variables
-DECLARE @Max_Fee INT = (SELECT MAX(Adoption_Fee) FROM Adoptions);
-
-SELECT	*,
-		@Max_Fee,
-		(((@Max_Fee - Adoption_Fee) * 100) / @Max_Fee) AS Discount_Percent
-FROM Adoptions;
   
 
 -- Get MAX adoption fee per species
@@ -50,23 +31,8 @@ SELECT	Species,
 FROM	Adoptions 
 GROUP BY Species;
 
--- Don't try this at home!
-SELECT	*,
-		(	SELECT	MAX(Adoption_Fee) 
-			FROM	Adoptions
-			WHERE	Species = 'Dog'
-		) AS Max_Dog_Fee,
-		(	SELECT	MAX(Adoption_Fee) 
-			FROM	Adoptions
-			WHERE	Species = 'Cat'
-		) AS Max_Cat_Fee,
-		(	SELECT	MAX(Adoption_Fee) 
-			FROM	Adoptions
-			WHERE	Species = 'Rabbit'
-		) AS Max_Rabbit_Fee
-FROM	Adoptions;
-
 -- Correlated expression subquery
+-- Max fee per species
 SELECT	*,
 		(	SELECT	MAX(Adoption_Fee) 
 			FROM	Adoptions AS A2 
@@ -87,6 +53,24 @@ FROM	Adoptions AS A
 		) AS M
 			ON A.Species = M.Species;
 
+
+-- Don't try this at home!
+SELECT	*,
+		(	SELECT	MAX(Adoption_Fee) 
+			FROM	Adoptions
+			WHERE	Species = 'Dog'
+		) AS Max_Dog_Fee,
+		(	SELECT	MAX(Adoption_Fee) 
+			FROM	Adoptions
+			WHERE	Species = 'Cat'
+		) AS Max_Cat_Fee,
+		(	SELECT	MAX(Adoption_Fee) 
+			FROM	Adoptions
+			WHERE	Species = 'Rabbit'
+		) AS Max_Rabbit_Fee
+FROM	Adoptions;
+
+
 -- Number of Persons and adoptions
 SELECT	COUNT(*)
 FROM	Persons;
@@ -101,45 +85,29 @@ FROM	Persons AS P
 		Adoptions AS A
 			ON A.Adopter_Email = P.Email;
 
--- Use IN = where is the bug?
-SELECT	*
-FROM	Persons
-WHERE	Email IN (SELECT Email FROM Adoptions);
-
--- Be careful with subquery aliases!
-SELECT	*
-FROM	Persons
-WHERE	Email IN (SELECT Adopter_Email FROM Adoptions);
-
--- True row expression
-/* PostgreSQL
-SELECT	*
-FROM	Animals
-WHERE	(Name, Species) = ROW('Abby', 'Dog');
-*/
 
 -- Non correlated EXISTS - Don't try this at home!
+-- Show all adopters
 SELECT	*
 FROM	Persons
 WHERE	EXISTS	(	
 				SELECT	NULL
 				FROM	Adoptions
-				WHERE	species = 'Dog' -- 'Elephant'
+				WHERE	species = 'Dog'
 				);
 
 -- Correlated EXISTS is the way to go!
+-- correct answer
 SELECT	*
 FROM	Persons AS P
 WHERE	EXISTS	(
-				SELECT	NULL
+				SELECT	*
 				FROM	Adoptions AS A
 				WHERE	A.Adopter_Email = P.Email
 				);
 
 
-Video 2
-
-Video 1
+Video 2: Set Operators
 
 -- Animals that were not adopted
 -- Using OUTER JOIN
@@ -160,6 +128,15 @@ WHERE	NOT EXISTS	(
 								AND 
 								AD.Species = AN.Species
 					);
+
+-- Using EXCEPT
+-- The right way - Set Operators
+SELECT	Name, Species
+FROM	Animals
+EXCEPT	
+SELECT	Name, Species
+FROM	Adoptions;
+
 
 Challenge: Write a query to show which breeds were never adopted.
 
@@ -197,9 +174,10 @@ WHERE	NOT EXISTS	(
 					);
 
 
-Chapter 2
+Chapter 2 
+Video 1: Self and iequlity joins
 
-Clip 1
+-- Show adopters who adopted 2 animals in the same day
 
 -- Adoptions matched with themselves
 SELECT	A1.Adopter_Email,
@@ -346,9 +324,7 @@ FROM	Adoptions AS A1
 --
 -- This makes logical sense because we use (A1.Name > A2.Name) to get rid of the "repeating groups" and then for the cases where two animals 
 -- have the same name but different species, we get rid of those with (A1.Name = A2.Name AND A1.Species > A2.Species).
-
-					
-					
+		
 ORDER BY	A1.Adopter_Email,
 			A1.Adoption_Date;
 
