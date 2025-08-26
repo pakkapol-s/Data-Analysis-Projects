@@ -377,10 +377,15 @@ ORDER BY	A1.Adopter_Email,
 DELETE FROM Adoptions WHERE Name = 'Duplicate';
 DELETE FROM Animals WHERE Name = 'Duplicate';
 
-Clip 2
+------
+
+Chapter 2
+Video 2: Lateral joins
 
 -- Get animals' most recent vaccination
 -- Using correlated subquery
+
+-- This query works but it's limited and inefficient. i.e. you can't use the order by clause
 SELECT	A.Name,
 		A.Species,
 		A.Primary_Color,
@@ -398,124 +403,61 @@ FROM	Animals AS A
 ORDER BY A.Name, Last_Vaccine;
 
 
--- Must repeat entire subquery...
+-- Solution
 SELECT	A.Name,
 		A.Species,
 		A.Primary_Color,
 		A.Breed,
-		(
-			SELECT	Vaccine
-			FROM	Vaccinations AS V
-			WHERE	V.Name = A.Name
-					AND
-					V.Species = A.species
-			ORDER BY V.Vaccination_Time DESC
-			OFFSET 0 ROWS FETCH NEXT 1 ROW ONLY
-		) AS Last_Vaccine,
-		(
-			SELECT	V.Vaccination_Time
-			FROM	Vaccinations AS V
-			WHERE	V.Name = A.Name
-					AND
-					V.Species = A.species
-			ORDER BY V.Vaccination_Time DESC
-			OFFSET 0 ROWS FETCH NEXT 1 ROW ONLY
-		) AS Last_Vaccine_Time
+		Last_Vaccinations.*
 FROM	Animals AS A
+		CROSS JOIN LATERAL
+		(
+			SELECT	V.Vaccine, 
+					V.Vaccination_Time
+			FROM	Vaccinations AS V
+			WHERE	V.Name = A.Name
+					AND
+					V.Species = A.species
+			ORDER BY V.Vaccination_Time DESC
+			LIMIT 3 OFFSET 0
+		) AS Last_Vaccinations
 ORDER BY 	A.Name, 
-			Last_Vaccine;
+			Vaccination_Time;
 
+-- Show animal that are not vaccinated
 
--- This is what we logically need, but it doesn't work
--- SELECT	A.Name,
--- 		A.Species,
--- 		A.Primary_Color,
--- 		A.Breed,
--- 		Last_Vaccinations.*
--- FROM	Animals AS A
--- 		CROSS JOIN 
--- 		(
--- 			SELECT	V.Vaccine, 
--- 					V.Vaccination_Time
--- 			FROM	Vaccinations AS V
--- 			WHERE	V.Name = A.Name
--- 					AND
--- 					V.Species = A.species
--- 			ORDER BY V.Vaccination_Time DESC
--- 			OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
--- 		) AS Last_Vaccinations
--- ORDER BY 	A.Name, 
--- 			Vaccination_Time;
+SELECT	A.Name,
+		A.Species,
+		A.Primary_Color,
+		A.Breed,
+		Last_Vaccinations.*
+FROM	Animals AS A
+		LEFT OUTER JOIN LATERAL
+		(
+			SELECT	V.Vaccine, 
+					V.Vaccination_Time
+			FROM	Vaccinations AS V
+			WHERE	V.Name = A.Name
+					AND
+					V.Species = A.species
+			ORDER BY V.Vaccination_Time DESC
+			LIMIT 3 OFFSET 0
+		) AS Last_Vaccinations
+			ON TRUE
+ORDER BY 	A.Name, 
+			Vaccination_Time;
 
+Challenge
 
-Challenge: Figure out which animals are breeding candidates.
+-- Our shelter has been experiencing financial difficulties.
+-- !!! PLEASE consider donating to your local animal shelter !!!
+-- The board of directors decided to explore additional revenue sources and came up with an idea.
+-- Instead of spaying and neutering all animals, the shelter should consider responsible breeding of purebred animals.
+-- !!!	This is a hypothetical question – ALWAYS spay and neuter your pets !!! 
 
--- In case you forgot to cleanup the previous demos...
-DELETE FROM Adoptions WHERE Name = 'Duplicate';
-DELETE FROM Animals WHERE Name IN ('Duplicate', 'Ferris');
+-- Your challenge is to figure out which animals are breeding candidates.
 
--- 1. Start with a simple CROSS JOIN
-SELECT	*
-FROM	Animals AS A1
-		CROSS JOIN
-		Animals AS A2;
-
--- 2. Filter for same species and breed
-SELECT	*
-FROM	Animals AS A1
-		INNER JOIN
-		Animals AS A2
-			ON	A1.Species = A2.Species
-				AND
-				A1.Breed = A2.Breed;
-
--- 3. Replace * with required column names
-SELECT	A1.Species,
-		A1.Breed AS Breed,
-		A1.Name AS Male,
-		A2.Name AS Female
-FROM	Animals AS A1
-		INNER JOIN
-		Animals AS A2
-			ON	A1.Species = A2.Species
-				AND
-				A1.Breed = A2.Breed
-ORDER BY 	A1.Species, 
-			A1.Breed;
-
--- 4. Add predicate or comment for future developers
-SELECT	A1.Species,
-		A1.Breed AS Breed,
-		A1.Name AS Male,
-		A2.Name AS Female
-FROM	Animals AS A1
-		INNER JOIN
-		Animals AS A2
-			ON	A1.Species = A2.Species
-				AND
-				A1.Breed = A2.Breed -- Removes NULL breeds
-				-- AND 
-				-- A1.Breed IS NOT NULL -- 
-ORDER BY 	A1.Species, 
-			A1.Breed;
-
--- 5. Don't match animals with themselves.
-SELECT	A1.Species,
-		A1.Breed AS Breed,
-		A1.Name AS Male,
-		A2.Name AS Female
-FROM	Animals AS A1
-		INNER JOIN
-		Animals AS A2
-			ON	A1.Species = A2.Species
-				AND
-				A1.Breed = A2.Breed -- Removes NULL breeds
-				AND
-				A1.Name <> A2.Name
-ORDER BY 	A1.Species, 
-			A1.Breed;
-
--- 6. Solution
+-- Solution
 SELECT	A1.Species,
 		A1.Breed AS Breed,
 		A1.Name AS Male,
@@ -535,7 +477,7 @@ FROM	Animals AS A1
 ORDER BY 	A1.Species, 
 			A1.Breed;
 
--- 7. Solution with > shortcut 
+-- Solution with > shortcut 
 -- 	  !!! Only works if collation is dictionary based, and if case insensitive or casing is consistent !!!
 SELECT	A1.Species,
 		A1.Breed AS Breed,
@@ -555,27 +497,31 @@ ORDER BY 	A1.Species,
 			A1.Breed;
 
 Chapter 3
+Video 1
 
-Clip 1
-
--- Add breed to animal's string description
+-- String concat
 SELECT	Adoption_Date,
 		SUM(Adoption_Fee) AS Total_Fee,
-		STRING_AGG(CONCAT(AN.Name, ' the ',  AN.Breed, ' ', AN.Species), ', ')
-		WITHIN GROUP (ORDER BY AN.Species, AN.Breed, AN.Name) AS Using_CONCAT,
-		STRING_AGG(AN.Name + ' the ' +  AN.Breed + ' ' + AN.Species, ', ')
-		WITHIN GROUP (ORDER BY AN.Species, AN.Breed, AN.Name) AS Using_Plus
-FROM	Adoptions AS AD
-		INNER JOIN
-		Animals AS AN
-			ON 	AN.Name = AD.Name 
-				AND 
-				AN.Species = AD.Species
+		STRING_AGG(CONCAT(Name, ' the ',  Species), ', ') AS Adopted_Animals
+FROM	Adoptions
 GROUP BY Adoption_Date
 HAVING	COUNT(*) > 1;
 
--- Hypothetical set and inverse distribution functions
-PostgreSQL
+-- min max avg of vaccination for each specie
+
+WITH Vaccination_Ranking AS (
+	SELECT Name, Species, COUNT(*) AS Num_of_V
+	FROM Vaccinations
+	GROUP BY Name, Species
+)
+SELECT Species, MAX(Num_of_V) AS MAX_V, MIN(Num_of_V) AS MIN_V,
+  CAST(AVG(Num_of_V) AS DECIMAL(9,2)) AS AVG_V
+FROM Vaccination_Ranking
+GROUP BY Species ;
+
+
+-- What would be the rank of an hypothetical animal that received X vaccinations?
+-- Too advance. May not need to dig too deep for this one
 WITH Vaccination_Ranking
 AS
 (
@@ -600,296 +546,3 @@ SELECT  Species,
 FROM    Vaccination_Ranking
 GROUP BY Species;
 
-Clip 2
-
--- Multi level aggregates
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
-		COUNT(*) AS Monthly_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date), MONTH(Adoption_Date);
-
-SELECT	YEAR(Adoption_Date) AS Year,
-		COUNT(*) AS Annual_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date);
-
-SELECT	COUNT(*) AS Total_Adoptions
-FROM	Adoptions
-GROUP BY ();
-
--- Add UNION ALL... no good
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
-		COUNT(*) AS Number_Of_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date), MONTH(Adoption_Date)
-UNION ALL
-SELECT	YEAR(Adoption_Date) AS Year,
-		COUNT(*) AS Annual_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date)
-UNION ALL
-SELECT	COUNT(*) AS Total_Adoptions
-FROM	Adoptions
-GROUP BY ();
-
--- Try string placeholders... no good
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
-		COUNT(*) AS Number_Of_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date), MONTH(Adoption_Date)
-UNION ALL
-SELECT	YEAR(Adoption_Date) AS Year,
-		'All Months' AS Month,
-		COUNT(*) AS Annual_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date)
-UNION ALL
-SELECT	'All Years' AS Year,	
-		'All Months' AS Month,
-		COUNT(*) AS Total_Adoptions
-FROM	Adoptions
-GROUP BY ()
-ORDER BY Year, Month;
-
--- Use NULL placeholders... very good!
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
-		COUNT(*) AS Monthly_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date), MONTH(Adoption_Date)
-UNION ALL
-SELECT	YEAR(Adoption_Date) AS Year,
-		NULL AS Month,
-		COUNT(*) AS Annual_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date)
-UNION ALL
-SELECT	NULL AS Year,	
-		NULL AS Month,
-		COUNT(*) AS Total_Adoptions
-FROM	Adoptions
-GROUP BY ()
-ORDER BY Year, Month;
-
--- Reuse lowest granularity aggregate in WITH clause
-WITH Aggregated_Adoptions
-AS
-(
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
-		COUNT(*) AS Monthly_Adoptions
-FROM	Adoptions
-GROUP BY YEAR(Adoption_Date), MONTH(Adoption_Date)
-)
-SELECT	*
-FROM	Aggregated_Adoptions
-UNION ALL
-SELECT	Year,
-		NULL,
-		COUNT(*)
-FROM	Aggregated_Adoptions
-GROUP BY Year
-UNION ALL
-SELECT	NULL,
-		NULL,
-		COUNT(*)
-FROM	Aggregated_Adoptions
-GROUP BY ();
-
-
-/* PostgreSQL
--- Reuse lowest granularity aggregate in WITH clause
-WITH Aggregated_Adoptions
-AS
-(
-SELECT	EXTRACT(year FROM Adoption_Date) AS Year,
-		EXTRACT(month FROM Adoption_Date) AS Month,
-		COUNT(*) AS Monthly_Adoptions
-FROM	Adoptions
-GROUP BY EXTRACT(year FROM Adoption_Date) , EXTRACT(month FROM Adoption_Date)
-)
-SELECT	*
-FROM	Aggregated_Adoptions
-UNION ALL
-SELECT	Year,
-		NULL,
-		COUNT(*)
-FROM	Aggregated_Adoptions
-GROUP BY Year
-UNION ALL
-SELECT	NULL,
-		NULL,
-		COUNT(*)
-FROM	Aggregated_Adoptions
-GROUP BY ();
-*/
-
--- GROUPING SETS
--- Equivalent to no GROUP BY
-SELECT	COUNT(*) AS Total_Adoptions
-FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			()
-		);
-
--- Equivalent to GROUP BY YEAR(Adoption_Date)
-SELECT	YEAR(Adoption_Date) AS Year,
-		COUNT(*) AS Annual_Adoptions
-FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			YEAR(Adoption_Date)
-		)
-ORDER BY Year;
-
--- Equivalent to GROUP BY YEAR(Adoption_Date), MONTH(Adoption_Date)
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
-		COUNT(*) AS Monthly_Adoptions
-FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			(
-				YEAR(Adoption_Date), MONTH(Adoption_Date)
-			)
-		)
-ORDER BY Year, Month;
-
--- Be careful with the parentheses!
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
-		COUNT(*) AS Monthly_Adoptions
-FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			YEAR(Adoption_Date), MONTH(Adoption_Date)
-		)
-ORDER BY Year, Month;
-
--- All in one...
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
-		COUNT(*) AS Monthly_Adoptions
-FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			(YEAR(Adoption_Date), MONTH(Adoption_Date)),
-			YEAR(Adoption_Date),
-			()
-		)
-ORDER BY Year, Month;
-
-PostgreSQL
--- All in one...
-SELECT	EXTRACT(year FROM Adoption_Date) AS Year,
-		EXTRACT(month FROM Adoption_Date) AS Month,
-		COUNT(*) AS Monthly_Adoptions
-FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			(EXTRACT(year FROM Adoption_Date), extract(month FROM Adoption_Date)),
-			EXTRACT(year FROM Adoption_Date),
-			()
-		)
-ORDER BY Year, Month;
-
-
--- Non hierarchical grouping sets
-SELECT	YEAR(Adoption_Date) AS Year,
-		Adopter_Email,
-		COUNT(*) AS Annual_Adoptions
-FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			YEAR(Adoption_Date),
-			Adopter_Email
-		);
-
--- Handling NULLs
-SELECT	COALESCE(Species, 'All') AS Species,
-		CASE 
-			WHEN GROUPING(Breed) = 1
-			THEN 'All'
-			ELSE Breed
-		END AS Breed,
-		GROUPING(Breed) AS Is_This_All_Breeds,
-		COUNT(*) AS Number_Of_Animals
-FROM	Animals
-GROUP BY GROUPING SETS 
-		(
-			Species,
-			Breed,
-			()
-		)
-ORDER BY Species, Breed;
-
-Challenge 
-
-
-Your last challenge is to write a query that returns a statistical report of vaccinations.
-The report should include the total number of vaccinations for several dimensions:
-🢂 Annual
-🢂 Per species
-🢂 For each species per year
-🢂 By each staff member
-🢂 By each staff member per species
-And to make it interesting, let’s throw in the latest vaccination year for each of these groups.
-
-
-SELECT	*
-FROM	Vaccinations AS V
-		INNER JOIN
-		Persons AS P
-			ON P.Email = V.Email;
-
-PostgreSQL
-
-SELECT	COALESCE(CAST(EXTRACT(YEAR FROM V.Vaccination_Time) AS VARCHAR(10)), 'All Years') AS Year,
-		COALESCE(V.Species, 'All Species') AS Species,
-		COALESCE(V.Email, 'All Staff') AS Email,
-		CASE WHEN GROUPING(V.Email) = 0
-			THEN MAX(P.First_Name) -- Dummy aggregate
-			ELSE ' '
-			END AS First_Name,
-		CASE WHEN GROUPING(V.Email) = 0
-			THEN MAX(P.Last_Name) -- Dummy aggregate
-			ELSE ' '
-			END AS Last_Name,
-		COUNT(*) AS Number_Of_Vaccinations,
-		MAX(EXTRACT(YEAR FROM V.Vaccination_Time)) AS Latest_Vaccination_Year
-FROM	Vaccinations AS V
-		INNER JOIN
-		Persons AS P
-			ON P.Email = V.Email
-GROUP BY GROUPING SETS	(
-							(),
-							EXTRACT(YEAR FROM V.Vaccination_Time),
-							V.Species,
-							(EXTRACT(YEAR FROM V.Vaccination_Time), V.Species),
-							(V.Email),
-							(V.Email, V.Species)
-						)
-ORDER BY Year, V.Species NULLS FIRST, First_Name, Last_Name;
-
-Chapter 4 
-
-Clip 1
-
-PostgreSQL
--- Recursion
-WITH RECURSIVE days_of_2019 (day) 
-AS
-(
-	SELECT CAST('20190101' AS DATE)
-	UNION ALL
-	SELECT	CAST(day  + INTERVAL '1 DAY' AS DATE)
-	FROM	days_of_2019
-	WHERE	CAST(day AS DATE) < CAST('20191231'AS DATE)
-)
-SELECT	* 
-FROM	days_of_2019
-ORDER BY day ASC;
