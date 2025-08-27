@@ -521,7 +521,7 @@ GROUP BY Species ;
 
 
 -- What would be the rank of an hypothetical animal that received X vaccinations?
--- Too advance. May not need to dig too deep for this one
+-- Too advanced. May not need to dig too deep for this one
 WITH Vaccination_Ranking
 AS
 (
@@ -546,3 +546,122 @@ SELECT  Species,
 FROM    Vaccination_Ranking
 GROUP BY Species;
 
+Chapter 3 
+Video 2: Grouping sets
+
+-- Show the number of annual, monthly, and overall adoption
+
+-- Multi level aggregates
+
+-- Groupby year and month
+SELECT	YEAR(Adoption_Date) AS Year,
+		MONTH(Adoption_Date) AS Month,
+		COUNT(*) AS Monthly_Adoptions
+FROM	Adoptions
+GROUP BY YEAR(Adoption_Date), MONTH(Adoption_Date);
+
+-- Group by year
+SELECT	YEAR(Adoption_Date) AS Year,
+		COUNT(*) AS Annual_Adoptions
+FROM	Adoptions
+GROUP BY YEAR(Adoption_Date);
+
+-- Total count
+SELECT	COUNT(*) AS Total_Adoptions
+FROM	Adoptions
+GROUP BY ();
+
+-- Grouping with total, and subtotal for each year
+
+SELECT	EXTRACT(year FROM Adoption_Date) AS Year,
+		EXTRACT(month FROM Adoption_Date) AS Month,
+		COUNT(*) AS Monthly_Adoptions
+FROM	Adoptions
+GROUP BY GROUPING SETS	
+		(
+			(EXTRACT(year FROM Adoption_Date), extract(month FROM Adoption_Date)),
+			EXTRACT(year FROM Adoption_Date),
+			()
+		)
+ORDER BY Year, Month;
+
+-- Group by adopter email showing how many animal each person has adopted
+
+SELECT	YEAR(Adoption_Date) AS Year,
+		Adopter_Email,
+		COUNT(*) AS Annual_Adoptions
+FROM	Adoptions
+GROUP BY GROUPING SETS	
+		(
+			YEAR(Adoption_Date),
+			Adopter_Email
+		);
+
+-- Group by species/breeds
+
+SELECT Species,
+  Breed,
+  COUNT(*) AS Number_of_animals
+FROM Aminals
+GROUP BY GROUPING SET (
+	Species,
+	Breeds,
+	()
+);
+
+-- Handling nulls
+
+SELECT	COALESCE(Species, 'All') AS Species,
+		CASE 
+			WHEN GROUPING(Breed) = 1
+			THEN 'All'
+			ELSE Breed
+		END AS Breed,
+		GROUPING(Breed) AS Is_This_All_Breeds,
+		COUNT(*) AS Number_Of_Animals
+FROM	Animals
+GROUP BY GROUPING SETS 
+		(
+			Species,
+			Breed,
+			()
+		)
+ORDER BY Species, Breed;
+
+-- Challenge 
+
+-- Your last challenge is to write a query that returns a statistical report of vaccinations.
+-- The report should include the total number of vaccinations for several dimensions:
+-- Annual
+-- Per species
+-- For each species per year
+-- By each staff member
+-- By each staff member per species
+-- And to make it interesting, let’s throw in the latest vaccination year for each of these groups.
+
+SELECT	COALESCE(CAST(EXTRACT(YEAR FROM V.Vaccination_Time) AS VARCHAR(10)), 'All Years') AS Year,
+		COALESCE(V.Species, 'All Species') AS Species,
+		COALESCE(V.Email, 'All Staff') AS Email,
+		CASE WHEN GROUPING(V.Email) = 0
+			THEN MAX(P.First_Name) -- Dummy aggregate
+			ELSE ' '
+			END AS First_Name,
+		CASE WHEN GROUPING(V.Email) = 0
+			THEN MAX(P.Last_Name) -- Dummy aggregate
+			ELSE ' '
+			END AS Last_Name,
+		COUNT(*) AS Number_Of_Vaccinations,
+		MAX(EXTRACT(YEAR FROM V.Vaccination_Time)) AS Latest_Vaccination_Year
+FROM	Vaccinations AS V
+		INNER JOIN
+		Persons AS P
+			ON P.Email = V.Email
+GROUP BY GROUPING SETS	(
+							(),
+							EXTRACT(YEAR FROM V.Vaccination_Time),
+							V.Species,
+							(EXTRACT(YEAR FROM V.Vaccination_Time), V.Species),
+							(V.Email),
+							(V.Email, V.Species)
+						)
+ORDER BY Year, V.Species NULLS FIRST, First_Name, Last_Name;
