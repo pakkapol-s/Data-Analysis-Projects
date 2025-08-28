@@ -1,10 +1,9 @@
 Advanced SQL - Query Processing Part 2
 
-Chapter 1 
-Video: 1 Subqueries
+Chapter 1 Subqueries and Set Operators
+Video 1: Subqueries
 
 -- show adoption rows including fees
-
 
 -- Get MAX adoption fee
 SELECT	MAX(Adoption_Fee)
@@ -18,6 +17,7 @@ SELECT	*,
 FROM	Adoptions;
 
 -- Must repeat entire subquery for each instance
+-- MAX Fee and Discount Percentage
 SELECT	*,
 		(SELECT MAX(Adoption_Fee) FROM Adoptions) AS Max_Fee,
 		(((SELECT MAX(Adoption_Fee) FROM Adoptions) - Adoption_Fee) * 100)
@@ -44,14 +44,14 @@ FROM	Adoptions AS A1;
 SELECT	A.*,
 		M.Max_Species_Fee
 FROM	Adoptions AS A
-		INNER JOIN
+		JOIN
 		(
 			SELECT	Species, 
 					MAX(Adoption_Fee) AS Max_Species_Fee
 			FROM	Adoptions 
 			GROUP BY Species
 		) AS M
-			ON A.Species = M.Species;
+		ON A.Species = M.Species;
 
 
 -- Don't try this at home!
@@ -81,9 +81,9 @@ FROM	Adoptions;
 -- Use JOIN
 SELECT	DISTINCT P.*
 FROM	Persons AS P
-		INNER JOIN
+		JOIN
 		Adoptions AS A
-			ON A.Adopter_Email = P.Email;
+		ON A.Adopter_Email = P.Email;
 
 
 -- Non correlated EXISTS - Don't try this at home!
@@ -91,7 +91,7 @@ FROM	Persons AS P
 SELECT	*
 FROM	Persons
 WHERE	EXISTS	(	
-				SELECT	NULL
+				SELECT	*
 				FROM	Adoptions
 				WHERE	species = 'Dog'
 				);
@@ -106,23 +106,23 @@ WHERE	EXISTS	(
 				WHERE	A.Adopter_Email = P.Email
 				);
 
-
+Chapter 1 Subqueries and Set Operators
 Video 2: Set Operators
 
 -- Animals that were not adopted
 -- Using OUTER JOIN
 SELECT	DISTINCT AN.Name, AN.Species
 FROM	Animals AS AN
-		LEFT OUTER JOIN
+		LEFT JOIN
 		Adoptions AS AD
-			ON AD.Name = AN.Name AND AD.Species = AN.Species
+		ON AD.Name = AN.Name AND AD.Species = AN.Species
 WHERE	AD.Name IS NULL;
 
 -- Using NOT EXISTS
 SELECT	AN.Name, AN.Species
 FROM	Animals AS AN
 WHERE	NOT EXISTS	(
-						SELECT	NULL
+						SELECT	*
 						FROM	Adoptions AS AD
 						WHERE	AD.Name = AN.Name
 								AND 
@@ -137,6 +137,14 @@ EXCEPT
 SELECT	Name, Species
 FROM	Adoptions;
 
+-- This query doesn't work
+-- each EXCEPT query must have the same number of columns
+SELECT	*
+FROM	Animals
+EXCEPT	
+SELECT	Name, Species
+FROM	Adoptions;
+
 
 Challenge: Write a query to show which breeds were never adopted.
 
@@ -144,9 +152,9 @@ Challenge: Write a query to show which breeds were never adopted.
 SELECT	Species, Breed
 FROM	Animals
 EXCEPT	
-SELECT	AN.Species, AN.Breed 
+SELECT	AN.Species, AN.Breed -- Ruturns only species and breed of the adopted animals
 FROM	Animals AS AN
-		INNER JOIN
+		JOIN
 		Adoptions AS AD
 		ON	AN.Species = AD.Species
 			AND
@@ -155,7 +163,7 @@ FROM	Animals AS AN
 -- Do we have non breed animals that were adopted?
 SELECT	*
 FROM	Animals AS AN
-		INNER JOIN 
+		JOIN 
 		Adoptions AS AD
 		ON	AD.Name = AN.Name 
 			AND
@@ -174,12 +182,11 @@ WHERE	NOT EXISTS	(
 					);
 
 
-Chapter 2 
+Chapter 2 Advanced Joins
 Video 1: Self and iequlity joins
 
 -- Show adopters who adopted 2 animals in the same day
 
--- Adoptions matched with themselves
 SELECT	A1.Adopter_Email,
 		A1.Adoption_Date,
 		A1.Name AS First_Animal_Name,
@@ -187,13 +194,23 @@ SELECT	A1.Adopter_Email,
 		A2.Name AS Second_Animal_Name,
 		A2.Species AS Second_Animal_Species
 FROM	Adoptions AS A1
-		INNER JOIN
+		JOIN
 		Adoptions AS A2
-			ON	A1.Adopter_Email = A2.Adopter_Email
-				AND 
-				A1.Adoption_Date = A2.Adoption_Date
+		ON	A1.Adopter_Email = A2.Adopter_Email
+			AND 
+			A1.Adoption_Date = A2.Adoption_Date
 ORDER BY	A1.Adopter_Email, 
 			A1.Adoption_Date;
+
+-- Feed your curiosity
+SELECT * 
+FROM	Adoptions AS A1
+		JOIN
+		Adoptions AS A2
+		ON	A1.Adopter_Email = A2.Adopter_Email
+			AND 
+			A1.Adoption_Date = A2.Adoption_Date
+
 
 -- Adoptions no longer matched with themselves,
 -- but we still get 2 rows for each adoption of 2 animals on the same day.
@@ -385,24 +402,6 @@ Video 2: Lateral joins
 -- Get animals' most recent vaccination
 -- Using correlated subquery
 
--- This query works but it's limited and inefficient. i.e. you can't use the order by clause
-SELECT	A.Name,
-		A.Species,
-		A.Primary_Color,
-		A.Breed,
-		(
-			SELECT	Vaccine
-			FROM	Vaccinations AS V
-			WHERE	V.Name = A.Name
-					AND
-					V.Species = A.species
-			ORDER BY V.Vaccination_Time DESC
-			OFFSET 0 ROWS FETCH NEXT 1 ROW ONLY
-		) AS Last_Vaccine
-FROM	Animals AS A
-ORDER BY A.Name, Last_Vaccine;
-
-
 -- Solution
 SELECT	A.Name,
 		A.Species,
@@ -424,6 +423,24 @@ FROM	Animals AS A
 ORDER BY 	A.Name, 
 			Vaccination_Time;
 
+-- This query works but it's limited and inefficient. i.e. you can't use the order by clause
+SELECT	A.Name,
+		A.Species,
+		A.Primary_Color,
+		A.Breed,
+		(
+			SELECT	Vaccine
+			FROM	Vaccinations AS V
+			WHERE	V.Name = A.Name
+					AND
+					V.Species = A.species
+			ORDER BY V.Vaccination_Time DESC
+			OFFSET 0 ROWS FETCH NEXT 1 ROW ONLY
+		) AS Last_Vaccine
+FROM	Animals AS A
+ORDER BY A.Name, Last_Vaccine;
+
+
 -- Show animal that are not vaccinated
 
 SELECT	A.Name,
@@ -432,7 +449,7 @@ SELECT	A.Name,
 		A.Breed,
 		Last_Vaccinations.*
 FROM	Animals AS A
-		LEFT OUTER JOIN LATERAL
+		LEFT JOIN LATERAL
 		(
 			SELECT	V.Vaccine, 
 					V.Vaccination_Time
@@ -463,7 +480,7 @@ SELECT	A1.Species,
 		A1.Name AS Male,
 		A2.Name AS Female
 FROM	Animals AS A1
-		INNER JOIN
+		JOIN
 		Animals AS A2
 		ON	A1.Species = A2.Species
 			AND
@@ -496,8 +513,8 @@ FROM	Animals AS A1
 ORDER BY 	A1.Species, 
 			A1.Breed;
 
-Chapter 3
-Video 1
+Chapter 3: More on Grouping
+Video 1: Ordered set functions
 
 -- String concat
 SELECT	Adoption_Date,
