@@ -1,7 +1,7 @@
 Advanced SQL: Logical Query Processing, Part 1
 
-Chapter 2 
-Clip 2 
+Chapter 2: Constructing Query Source Data sets
+Video 2: Dual source query processing
 
 -- CROSS JOIN
 -- Produces a Cartesian product, meaning every row from one table is paired with every row from the other table.
@@ -26,23 +26,24 @@ FROM	Animals AS A
 
 SELECT	AD.Adopter_Email, AD.Adoption_Date, A.*
 FROM	Animals AS A
-		LEFT OUTER JOIN 
+		LEFT JOIN -- Note that LEFT JOIN and LEFT OUTER JOIN are the same thing. 
 		Adoptions AS AD
-		ON	AD.Name = A.Name 
+		ON	AD.Name = A.Name -- Composite primary key in the ON clause
 			AND 
-			AD.Species = A.Species;
+			AD.Species = A.Species; -- Composite primary key in the ON clause
 
-Clip 3
+Chapter 2: Constructing Query Source Data sets
+Video 3: Dealing with ternary logic in SQL
 
 -- Write query about the aminals and their adopters
 SELECT	*
 FROM	Animals AS AN
-		INNER JOIN 
+		JOIN 
 		Adoptions AS AD
-			ON AD.Name = AN.Name 
+			ON AD.Name = AN.Name -- ON Key AND Key = Composite primary key
 			AND 
 			AD.Species = AN.Species
-		INNER JOIN 
+		JOIN 
 		Persons AS P 
 			ON	AD.Adopter_Email = P.Email;
 
@@ -59,7 +60,7 @@ FROM	Animals AS AN
 				AND 
 				AD.Species = AN.Species;
 
-Challenge:
+Challenge: Hybrid multi-table join
 -- 1. Write a query to report animal and their vaccination. Include animals that have not been vaccinated. 
 -- The report should show animal's name, species, breed, and primary color, vaccination time and the vaccine name, 
 -- the staff's member first names, last names, and role. 
@@ -77,12 +78,12 @@ SELECT	A.Name,
 		P.Last_Name,
 		SA.Role
 FROM	Animals AS A
-		LEFT OUTER JOIN
+		LEFT JOIN
 		(	Vaccinations AS V
-			INNER JOIN
+			JOIN
 			Staff_Assignments AS SA
 				ON SA.Email = V.Email
-			INNER JOIN
+			JOIN
 			Persons AS P
 				ON P.Email = V.Email
 		)
@@ -92,8 +93,7 @@ FROM	Animals AS A
 ORDER BY A.Species, A.Name, A.Breed, V.Vaccination_Time DESC;
 
 Chapter 3 Row filters
-
-Clip 1
+Video 2: Missing information and ternary logic
 
 -- Write a query that includes all dogs except bullmastiff
 SELECT	*
@@ -104,15 +104,17 @@ WHERE	Species = 'Dog'
 
 SELECT	*
 FROM	Animals
-WHERE	Breed IS DISTINCT FROM 'Bullmastiff';
+WHERE	Breed IS DISTINCT FROM 'Bullmastiff'; 
+		-- Ruturns all rows that Breed is not 'Bullmastiff, and Breed is NULL
 
+-- Alternative option
 SELECT	*
 FROM	Animals
 WHERE	(Breed = 'Bullmastiff') IS NOT TRUE;
+		-- Ruturns all rows that Breed is not 'Bullmastiff, and Breed is NULL
 
 Chatper 4 Grouping
-
-Video 3
+Video 3: Group filters
 
 -- Identify hoarders
 
@@ -157,11 +159,11 @@ SELECT	AN.Name,
 		MAX(AN.Breed) AS Breed, -- Dummy aggregate, functionally dependent.
 		COUNT(V.Vaccine) AS Number_Of_Vaccines
 FROM	Animals AS AN
-		LEFT OUTER JOIN 
+		LEFT JOIN 
 		Vaccinations AS V
-			ON	V.Name = AN.Name 
-				AND 
-				V.Species = AN.Species
+		ON	V.Name = AN.Name 
+			AND 
+			V.Species = AN.Species
 WHERE	AN.Species <> 'Rabbit'
 		AND
 		(V.Vaccine <> 'Rabies' OR V.Vaccine IS NULL)
@@ -172,3 +174,6 @@ HAVING	MAX(V.Vaccination_Time) < '20191001'
 		MAX(V.Vaccination_Time) IS NULL
 ORDER BY	AN.Species,
 			AN.Name;
+
+
+
