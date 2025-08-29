@@ -396,7 +396,7 @@ DELETE FROM Animals WHERE Name = 'Duplicate';
 
 ------
 
-Chapter 2
+Chapter 2 Advanced Joins
 Video 2: Lateral joins
 
 -- Get animals' most recent vaccination
@@ -464,6 +464,7 @@ FROM	Animals AS A
 ORDER BY 	A.Name, 
 			Vaccination_Time;
 
+Chapter 2 Advanced Joins
 Challenge
 
 -- Our shelter has been experiencing financial difficulties.
@@ -563,40 +564,41 @@ SELECT  Species,
 FROM    Vaccination_Ranking
 GROUP BY Species;
 
-Chapter 3 
+Chapter 3: More on Grouping
 Video 2: Grouping sets
-
--- Show the number of annual, monthly, and overall adoption
 
 -- Multi level aggregates
 
+-- Show the number of annual, monthly, and overall adoption
+
 -- Groupby year and month
-SELECT	YEAR(Adoption_Date) AS Year,
-		MONTH(Adoption_Date) AS Month,
+SELECT	EXTRACT(year FROM Adoption_Date) AS Year,
+		EXTRACT(month FROM Adoption_Date) AS Month,
 		COUNT(*) AS Monthly_Adoptions
 FROM	Adoptions
-GROUP BY YEAR(Adoption_Date), MONTH(Adoption_Date);
+GROUP BY EXTRACT(year FROM Adoption_Date), EXTRACT(month FROM Adoption_Date);
 
 -- Group by year
-SELECT	YEAR(Adoption_Date) AS Year,
+SELECT	EXTRACT(year FROM Adoption_Date) AS Year,
 		COUNT(*) AS Annual_Adoptions
 FROM	Adoptions
-GROUP BY YEAR(Adoption_Date);
+GROUP BY EXTRACT(year FROM Adoption_Date);
 
 -- Total count
 SELECT	COUNT(*) AS Total_Adoptions
 FROM	Adoptions
 GROUP BY ();
 
--- Grouping with total, and subtotal for each year
+-- Grouping by grouping set year and month
+-- Show total for each year and total of all rows
 
 SELECT	EXTRACT(year FROM Adoption_Date) AS Year,
 		EXTRACT(month FROM Adoption_Date) AS Month,
 		COUNT(*) AS Monthly_Adoptions
 FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			(EXTRACT(year FROM Adoption_Date), extract(month FROM Adoption_Date)),
+GROUP BY GROUPING SETS (
+			(EXTRACT(year FROM Adoption_Date), 
+			EXTRACT(month FROM Adoption_Date)),
 			EXTRACT(year FROM Adoption_Date),
 			()
 		)
@@ -604,14 +606,14 @@ ORDER BY Year, Month;
 
 -- Group by adopter email showing how many animal each person has adopted
 
-SELECT	YEAR(Adoption_Date) AS Year,
+SELECT	EXTRACT(year FROM Adoption_Date) AS Year,
 		Adopter_Email,
 		COUNT(*) AS Annual_Adoptions
 FROM	Adoptions
-GROUP BY GROUPING SETS	
-		(
-			YEAR(Adoption_Date),
-			Adopter_Email
+GROUP BY GROUPING SETS	(
+			EXTRACT(year FROM Adoption_Date),
+			Adopter_Email,
+			() -- Total of all rows
 		);
 
 -- Group by species/breeds
@@ -619,31 +621,56 @@ GROUP BY GROUPING SETS
 SELECT Species,
   Breed,
   COUNT(*) AS Number_of_animals
-FROM Aminals
-GROUP BY GROUPING SET (
-	Species,
-	Breeds,
-	()
+FROM Animals
+GROUP BY GROUPING SETS (
+    (Species),
+    (Breed),
+    ()
 );
 
--- Handling nulls
+-- "species","breed","number_of_animals"
+-- "NULL","NULL","100" -- We don't know which one is the total of all rows
+-- "NULL","NULL","68" -- We don't know which one is the total of all rows
+-- "Rabbit","","10"
+-- "Cat","","30"
+-- "Dog","","60"
+-- "","Belgian Hare","1"
+-- "","Weimaraner","5"
+-- "","Scottish Fold","1"
+-- "","Persian","1"
+-- "","Sphynx","2"
+-- "","Russian Blue","1"
+-- "","Siamese","1"
+-- "","English setter","6"
+-- "","Bullmastiff","4"
+-- "","Schnauzer","4"
+-- "","Lionhead","1"
+-- "","American Bobtail","1"
+-- "","Turkish Angora","2"
+-- "","Maine Coon","1"
+-- "","English Lop","1"
 
-SELECT	COALESCE(Species, 'All') AS Species,
+-- That's why we need the following query
+
+-- Handling nulls
+-- The COALESCE() function returns the first non-null value in a list.
+-- The first column of the previous query returned NULL. So the value is replaced with "ALL"
+SELECT	COALESCE(Species, 'All') AS Species, 
 		CASE 
-			WHEN GROUPING(Breed) = 1
-			THEN 'All'
+			WHEN GROUPING(Breed) = 1 THEN 'All' -- For the grand total
 			ELSE Breed
 		END AS Breed,
 		GROUPING(Breed) AS Is_This_All_Breeds,
 		COUNT(*) AS Number_Of_Animals
 FROM	Animals
-GROUP BY GROUPING SETS 
-		(
-			Species,
-			Breed,
+GROUP BY GROUPING SETS (
+		(Species),
+		(Breed),
 			()
 		)
 ORDER BY Species, Breed;
+
+SELECT * FROM Animals;
 
 -- Challenge 
 
