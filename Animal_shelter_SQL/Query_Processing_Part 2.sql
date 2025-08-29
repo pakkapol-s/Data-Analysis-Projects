@@ -697,9 +697,9 @@ SELECT	COALESCE(CAST(EXTRACT(YEAR FROM V.Vaccination_Time) AS VARCHAR(10)), 'All
 		COUNT(*) AS Number_Of_Vaccinations,
 		MAX(EXTRACT(YEAR FROM V.Vaccination_Time)) AS Latest_Vaccination_Year
 FROM	Vaccinations AS V
-		INNER JOIN
+		JOIN
 		Persons AS P
-			ON P.Email = V.Email
+		ON P.Email = V.Email
 GROUP BY GROUPING SETS	(
 							(),
 							EXTRACT(YEAR FROM V.Vaccination_Time),
