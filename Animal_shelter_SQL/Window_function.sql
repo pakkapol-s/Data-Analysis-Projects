@@ -1,6 +1,6 @@
 -- Window FUNCTION
 
-Chapter 2 
+Chapter 2 Window Function and the OVER Clause
 Video 2: Overview and filter clause
 
 -- Show the total number of animals in our shelter ever.
@@ -22,13 +22,12 @@ SELECT 	species,
 		name, 
 		primary_color, 
 		admission_date,
-		COUNT (*)
-		OVER () AS number_of_animals
+		COUNT (*) OVER () AS number_of_animals
 FROM 	animals	
 WHERE 	admission_date >= '2017-01-01'
 ORDER BY admission_date ASC;
 
-Chapter 2
+Chapter 2 Window Function and the OVER Clause
 Video 3: PARTITION BY and ORDER BY
 
 -- Show the number of animal species instead of total 
@@ -37,8 +36,7 @@ SELECT 	species,
 		name,
 		primary_color,
 		admission_date,
-		COUNT (*) 
-		OVER (PARTITION BY species) AS number_of_species_animals
+		COUNT (*) OVER (PARTITION BY species) AS number_of_species_animals
 FROM 	animals
 ORDER BY 	species ASC, 
 			admission_date ASC;
@@ -50,7 +48,7 @@ SELECT 	a.species,
 		a.admission_date,
 		species_counts.number_of_species_animals
 FROM 	animals AS a
-		INNER JOIN 
+		JOIN 
 		(	SELECT 	species,
 					COUNT(*) AS number_of_species_animals
 			FROM 	animals
@@ -61,10 +59,13 @@ ORDER BY 	a.species ASC,
 			a.admission_date ASC;
 
 
-Chapter 3
+Chapter 3 Framing, Exclusions, and Shortcuts
 Video 2 Practical Framing Examples
 
 -- Show the number of same specie animals on the previous date
+
+-- ROWS = “Count 3 seats behind me in the cinema.” (position-based)
+-- RANGE = “Count everyone who bought tickets within the last 3 days.” (value-based).
 
 SELECT 	species,
 		name, 
@@ -73,9 +74,8 @@ SELECT 	species,
 		COUNT (*) 
 		OVER (	PARTITION BY 	species
 				ORDER BY 		admission_date ASC
-				RANGE BETWEEN 	UNBOUNDED PRECEDING 
-								AND 
-								'1 day' PRECEDING
+				RANGE BETWEEN 	UNBOUNDED PRECEDING AND '1 day' PRECEDING
+				-- Count all dogs admitted from the very beginning up to the day before this dog’s admission date.”
 			 ) AS up_to_previous_day_species_animals
 FROM 	animals
 WHERE 	species = 'Dog' 
@@ -84,7 +84,7 @@ WHERE 	species = 'Dog'
 ORDER BY 	species ASC, 
 			admission_date ASC;
 
-Chapter 4 
+Chapter 4 Aggregate window functions
 Video 2: Aggregate Window FUNCTIONS
 
 
@@ -133,30 +133,26 @@ ORDER BY 	species ASC,
 			checkup_time ASC;
 
 -- Separate into CTEs
-WITH species_average_heart_rates
-AS
-(
-SELECT 	species, 
-		name, 
-		checkup_time, 
-		heart_rate, 
-		CAST (	AVG (heart_rate) 
-				OVER (PARTITION BY species) 
-			 AS DECIMAL (5, 2)
-			 ) AS species_average_heart_rate
-FROM	routine_checkups
+WITH species_average_heart_rates AS (
+	SELECT 	species, 
+			name, 
+			checkup_time, 
+			heart_rate, 
+			CAST (	AVG (heart_rate) 
+					OVER (PARTITION BY species) 
+				AS DECIMAL (5, 2)
+				) AS species_average_heart_rate
+	FROM	routine_checkups
 ),
-with_consistently_at_or_above_average_indicator
-AS
-(
-SELECT	species, 
-		name, 
-		checkup_time, 
-		heart_rate,
-		species_average_heart_rate,
-		EVERY (heart_rate >= species_average_heart_rate) 
-		OVER (PARTITION BY species, name) AS consistently_at_or_above_average
-FROM 	species_average_heart_rates
+with_consistently_at_or_above_average_indicator AS (
+	SELECT	species, 
+			name, 
+			checkup_time, 
+			heart_rate,
+			species_average_heart_rate,
+			EVERY (heart_rate >= species_average_heart_rate) 
+			OVER (PARTITION BY species, name) AS consistently_at_or_above_average
+	FROM 	species_average_heart_rates
 )
 SELECT 	DISTINCT species,
 		name,
@@ -167,7 +163,14 @@ WHERE 	consistently_at_or_above_average
 ORDER BY 	species ASC,
 			heart_rate DESC;
 
-Chapter 4
+-- Explanation:
+-- 1. EVERY (heart_rate >= species_average_heart_rate)
+-- For each animal (species, name):
+-- Look at all of its checkups.
+-- If in every checkup, its heart_rate was ≥ the species’ average → TRUE.
+-- If even one checkup was below average → FALSE.
+
+Chapter 4 Aggregate window functions
 Video 3 Combining grouped and window aggregate functions
 
 -- Show monthly adtoprion fee revenue
@@ -232,6 +235,8 @@ Challenge
 
 -- Step by step solution
 
+SELECT * FROM vaccinations;
+
 -- CTE for total number of annual vaccination
 WITH annual_vaccinations
 AS
@@ -241,34 +246,30 @@ SELECT	CAST (DATE_PART ('year', vaccination_time) AS INT) AS year,
 FROM 	vaccinations
 GROUP BY DATE_PART ('year', vaccination_time)
 )
--- SELECT * FROM annual_vaccinations ORDER BY year; -- Uncomment to execute preceding CTE
+SELECT * FROM annual_vaccinations ORDER BY year; -- Uncomment to execute preceding CTE
 
 -- Full version solution
-WITH annual_vaccinations
-AS
-(
-SELECT	CAST (DATE_PART ('year', vaccination_time) AS INT) AS year,
-		COUNT (*) AS number_of_vaccinations
-FROM 	vaccinations
-GROUP BY DATE_PART ('year', vaccination_time)
+WITH annual_vaccinations AS (
+	SELECT	CAST (DATE_PART ('year', vaccination_time) AS INT) AS year,
+			COUNT (*) AS number_of_vaccinations
+	FROM 	vaccinations
+	GROUP BY DATE_PART ('year', vaccination_time)
 )
 -- SELECT * FROM annual_vaccinations ORDER BY year; -- Uncomment to execute preceding CTE
-,annual_vaccinations_with_previous_2_year_average
-AS
-(
-SELECT 	*,
-		CAST (AVG (number_of_vaccinations) 
-			   OVER (ORDER BY year ASC
-					 RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING 
-					 -- Watch out for frame type...
-					) 
-			AS DECIMAL (5, 2)
-			 )
-		AS previous_2_years_average
-FROM 	annual_vaccinations
+,annual_vaccinations_with_previous_2_year_average AS (
+	SELECT 	*,
+			CAST (AVG (number_of_vaccinations) 
+				OVER (ORDER BY year ASC
+						RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING 
+						-- Watch out for frame type...
+						) 
+				AS DECIMAL (5, 2)
+				)
+			AS previous_2_years_average
+	FROM 	annual_vaccinations
 -- WHERE year <> 2018 -- remove comment to check difference between ROWS and RANGE above
 )
--- SELECT * FROM annual_vaccinations_with_previous_2_year_average ORDER BY year;
+-- SELECT * FROM annual_vaccinations_with_previous_2_year_average ORDER BY year; -- Uncomment to execute preceding CTE
 SELECT 	*,
 		CAST ((100 * number_of_vaccinations / previous_2_years_average) 
 			 AS DECIMAL (5, 2)
@@ -277,7 +278,14 @@ FROM 	annual_vaccinations_with_previous_2_year_average
 ORDER BY year ASC;
 
 
-Chapter 5
+-- Explanations:
+-- RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING
+-- This defines the frame of rows that the AVG() should look at for each current row.
+-- 2 PRECEDING → start the frame 2 "steps" before the current row’s ordering value.
+-- 1 PRECEDING → end the frame 1 "step" before the current row’s ordering value.
+-- So the frame = the two years immediately before the current year.
+
+Chapter 5 RANK and DISTRIBUTION Window Function
 Video 2 ROW_NUMBER and NTILE
 
 -- Show top 3 animals of each specie with the largest number of checkups, including species with less than 3 animals.
@@ -288,7 +296,7 @@ SELECT 	s.species,
 		COUNT (rc.checkup_time) AS number_of_checkups 
 		-- Can't use * in order to return 0 for species with no checkups
 FROM	reference.species AS s 
-		LEFT OUTER JOIN -- Include species with no checkups...
+		LEFT JOIN -- Include species with no checkups...
 		routine_checkups AS rc
 		ON s.species = rc.species
 GROUP BY 	s.species, 
@@ -297,6 +305,7 @@ ORDER BY 	s.species,
 			number_of_checkups DESC;
 
 
+-- Solution
 WITH animal_checkups
 AS
 (
@@ -388,7 +397,7 @@ SELECT 	s.species,
 		animal_checkups.name,
 		COALESCE (animal_checkups.number_of_checkups, 0) AS number_of_checkups
 FROM 	reference.species AS s
-		LEFT OUTER JOIN LATERAL 
+		LEFT JOIN LATERAL 
 		(
 			SELECT 	rc.species,
 					rc.name,
@@ -404,28 +413,20 @@ FROM 	reference.species AS s
 		) AS animal_checkups
 		ON TRUE;
 
-Chapter 5
+Chapter 5 RANK and DISTRIBUTION Window Function
 Video 3 RANK and DENSE_RANK
 
 -- All animals whoose number of checkups is in the top 3 distinct number of checkups per species
 
-WITH all_ranks
-AS
-(
-SELECT 	species, 
-		name, 
-		COUNT (*) AS number_of_checkups,
-		ROW_NUMBER () 
-		OVER W AS row_number,
-		RANK () 
-		OVER W AS rank,
-		DENSE_RANK () 
-		OVER W AS dense_rank
-FROM	routine_checkups
-GROUP BY species, name
-WINDOW 	W AS 	(PARTITION BY species 
-				 ORDER BY COUNT(*) DESC
-				)
+WITH all_ranks AS (
+	SELECT 	species, 
+			name, 
+			COUNT (*) AS number_of_checkups,
+			ROW_NUMBER () OVER W AS row_number,
+			RANK () OVER W AS rank,
+			DENSE_RANK () OVER W AS dense_rank
+	FROM	routine_checkups
+	GROUP BY species, name WINDOW W AS (PARTITION BY species ORDER BY COUNT(*) DESC)
 )
 SELECT 	species,
 		name,
@@ -435,7 +436,7 @@ WHERE 	dense_rank <= 3
 ORDER BY 	species,
 			number_of_checkups DESC;
 
-Chapter 5
+Chapter 5 RANK and DISTRIBUTION Window Function
 Video 4: Distribution window functions
 
 -- Weight Analysis 
@@ -565,7 +566,7 @@ ORDER BY 	species ASC,
 			latest_exception DESC;
 
 
-Chapter 6
+Chapter 6 Offset windows functions
 Video 2: Row offset window functions
 
 -- Show animal checkups, and how much weight they gained since the last checkups 
@@ -597,7 +598,7 @@ ORDER BY 	species ASC,
 			name ASC, 
 			checkup_time ASC;
 
-Chapter 6
+Chapter 6 Offset windows functions
 Video 2: Frame offset functions
 
 -- Show weight gain over the past 3 months 
