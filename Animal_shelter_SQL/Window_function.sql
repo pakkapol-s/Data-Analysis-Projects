@@ -428,6 +428,7 @@ WITH all_ranks AS (
 	FROM	routine_checkups
 	GROUP BY species, name WINDOW W AS (PARTITION BY species ORDER BY COUNT(*) DESC)
 )
+-- SELECT * FROM all_ranks;
 SELECT 	species,
 		name,
 		number_of_checkups
@@ -441,25 +442,17 @@ Video 4: Distribution window functions
 
 -- Weight Analysis 
 
-WITH average_weights
-AS
-(
-SELECT	species, 
-		name, 
-		CAST (AVG (weight) AS DECIMAL (5, 2)) AS average_weight
-FROM 	routine_checkups
-GROUP BY 	species, 
-			name
+WITH average_weights AS (
+	SELECT	species, 
+			name, 
+			CAST (AVG (weight) AS DECIMAL (5, 2)) AS average_weight
+	FROM 	routine_checkups
+	GROUP BY 	species, 
+				name
 )
 SELECT 	*,
-		PERCENT_RANK () 
-		OVER (PARTITION BY species 
-			  ORDER BY average_weight
-			 ) AS percent_rank,
-		CUME_DIST () 
-		OVER (PARTITION BY species 
-			  ORDER BY average_weight
-			 ) AS cumulative_distribtuion
+		PERCENT_RANK () OVER (PARTITION BY species ORDER BY average_weight) AS percent_rank,
+		CUME_DIST () OVER (PARTITION BY species ORDER BY average_weight) AS cumulative_distribtuion
 FROM 	average_weights
 ORDER BY 	species DESC, 
 			average_weight DESC;
@@ -476,83 +469,61 @@ Challenge:
 -- Solution
 -- Check the average of species temperature 
 
-WITH checkups_with_temperature_differences
-AS
-(
-SELECT 	species,
-		name,
-		temperature,
-		checkup_time,
-		CAST ( 	AVG (temperature) 
-				OVER (PARTITION BY species) 
-			 	AS DECIMAL (5,2)
-			 ) AS species_average_temperature,
-		CAST (	temperature - 	AVG (temperature) 
-								OVER (PARTITION BY species)
-			 	AS DECIMAL (5, 2) 
-			 ) AS difference_from_average
-FROM 	routine_checkups
+WITH checkups_with_temperature_differences AS (
+	SELECT 	species,
+			name,
+			temperature,
+			checkup_time,
+			CAST (AVG (temperature) OVER (PARTITION BY species) AS DECIMAL (5,2)) AS species_average_temperature,
+			CAST (temperature - AVG (temperature) OVER (PARTITION BY species) AS DECIMAL (5, 2) ) AS difference_from_average
+	FROM 	routine_checkups
 )
-SELECT * FROM checkups_with_temperature_differences ORDER BY species, difference_from_average;
+SELECT * 
+FROM checkups_with_temperature_differences 
+ORDER BY species, difference_from_average;
 
 -- Full solution
-WITH checkups_with_temperature_differences
-AS
-(
-SELECT 	species,
-		name,
-		temperature,
-		checkup_time,
-		CAST ( 	AVG (temperature) 
-				OVER (PARTITION BY species) 
-			 	AS DECIMAL (5,2)
-			 ) AS species_average_temperature,
-		CAST (	temperature - 	AVG (temperature) 
-								OVER (PARTITION BY species)
-			 	AS DECIMAL (5, 2) 
-			 ) AS difference_from_average
-FROM 	routine_checkups
+WITH checkups_with_temperature_differences AS (
+	SELECT 	species,
+			name,
+			temperature,
+			checkup_time,
+			CAST (AVG (temperature) OVER (PARTITION BY species) AS DECIMAL (5,2)) AS species_average_temperature,
+			CAST (temperature - AVG (temperature) OVER (PARTITION BY species) AS DECIMAL (5, 2)) AS difference_from_average
+	FROM 	routine_checkups
 )
 -- SELECT * FROM checkups_with_temperature_differences ORDER BY species, difference_from_average;
-,temperature_differences_with_exception_indicator
-AS
-(
-SELECT	*,
-		CASE 
-		WHEN ABS (difference_from_average / species_average_temperature) >= 0.005
-			THEN 1
-		ELSE 0
-		END AS is_temperature_exception
-FROM 	checkups_with_temperature_differences
+,temperature_differences_with_exception_indicator AS (
+	SELECT	*,
+			CASE 
+			WHEN ABS (difference_from_average / species_average_temperature) >= 0.005
+				THEN 1
+			ELSE 0
+			END AS is_temperature_exception
+	FROM 	checkups_with_temperature_differences
 )
 -- SELECT * FROM temperature_differences_with_exception_indicator ORDER BY species, difference_from_average;
-,grouped_animals_with_exceptions
-AS 
-(
-SELECT	species,
-		name,
-		SUM (is_temperature_exception) AS number_of_exceptions,
-		MAX (	CASE 
-				WHEN is_temperature_exception = 1 
-					THEN checkup_time
-				ELSE NULL
-				END
-			) AS latest_exception
-FROM 	temperature_differences_with_exception_indicator
-GROUP BY 	species,
-			name
+,grouped_animals_with_exceptions AS (
+	SELECT	species,
+			name,
+			SUM (is_temperature_exception) AS number_of_exceptions,
+			MAX (	CASE 
+					WHEN is_temperature_exception = 1 
+						THEN checkup_time
+					ELSE NULL
+					END
+				) AS latest_exception
+	FROM 	temperature_differences_with_exception_indicator
+	GROUP BY 	species, name
 )
 -- SELECT * FROM grouped_animals_with_exceptions ORDER BY species, number_of_exceptions;
-,animal_exceptions_with_ntile
-AS
-(
-SELECT 	*,
-		NTILE (4)
-		OVER (	PARTITION BY species 
-				ORDER BY number_of_exceptions ASC, -- try DESC,
-						 latest_exception DESC -- try ASC
-			 ) AS ntile
-FROM 	grouped_animals_with_exceptions
+,animal_exceptions_with_ntile AS (
+	SELECT 	*,
+			NTILE (4)
+			OVER (PARTITION BY species ORDER BY number_of_exceptions ASC, -- try DESC,
+				latest_exception DESC -- try ASC
+				) AS ntile
+	FROM 	grouped_animals_with_exceptions
 )
 -- SELECT * FROM animal_exceptions_with_ntile ORDER BY species, number_of_exceptions, latest_exception DESC;
 SELECT 	species,
@@ -571,60 +542,35 @@ Video 2: Row offset window functions
 
 -- Show animal checkups, and how much weight they gained since the last checkups 
 
-SELECT	species, 
-		name,
-		checkup_time,
-		weight,
-		weight - LAG (weight) 
-				 OVER (PARTITION BY species, name 
-				 	   ORDER BY checkup_time ASC
-				 	  ) AS weight_gain
-FROM 	routine_checkups
-ORDER BY 	species ASC, 
-			name ASC, 
-			checkup_time ASC;
-
 -- solution
 SELECT	species, 
 		name,
 		checkup_time,
 		weight,
 		weight - LAG (weight) -- because we don't know what the gain is for the first checkup
-				 OVER (PARTITION BY species, name 
-				 	   ORDER BY checkup_time ASC
-				 	  ) AS weight_gain
+				 OVER (PARTITION BY species, name ORDER BY checkup_time ASC) AS weight_gain
 FROM 	routine_checkups
-ORDER BY 	species ASC, 
-			name ASC, 
-			checkup_time ASC;
+ORDER BY 	species ASC, name ASC, checkup_time ASC;
 
 Chapter 6 Offset windows functions
 Video 2: Frame offset functions
 
 -- Show weight gain over the past 3 months 
 
-WITH
-weight_gains
-AS
-(
-SELECT	species, 
-		name,
-		checkup_time,
-		weight,
-		(weight - 	FIRST_VALUE (weight) 
-						OVER (PARTITION BY species, name 
-							  ORDER BY CAST (checkup_time AS DATE) ASC
-							  RANGE BETWEEN 	'3 months' PRECEDING 
-												AND 
-												'1 day' PRECEDING
-							 )
-		) AS weight_gain_in_3_months
-FROM 	routine_checkups
-)
+WITH weight_gains AS (
+	SELECT	species, 
+			name,
+			checkup_time,
+			weight,
+			(weight - FIRST_VALUE (weight) OVER (PARTITION BY species, name ORDER BY CAST (checkup_time AS DATE) ASC
+			RANGE BETWEEN 	'3 months' PRECEDING AND '1 day' PRECEDING)) AS weight_gain_in_3_months
+	FROM 	routine_checkups
+	)
 SELECT 	*
 FROM 	weight_gains
 ORDER BY ABS (weight_gain_in_3_months) DESC NULLS LAST;
 
+-- Solution
 WITH weight_gains
 AS
 (
