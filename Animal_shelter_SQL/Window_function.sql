@@ -258,14 +258,8 @@ WITH annual_vaccinations AS (
 -- SELECT * FROM annual_vaccinations ORDER BY year; -- Uncomment to execute preceding CTE
 ,annual_vaccinations_with_previous_2_year_average AS (
 	SELECT 	*,
-			CAST (AVG (number_of_vaccinations) 
-				OVER (ORDER BY year ASC
-						RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING 
+			CAST (AVG (number_of_vaccinations) OVER (ORDER BY year ASC RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING )AS DECIMAL (5, 2)) AS previous_2_years_average
 						-- Watch out for frame type...
-						) 
-				AS DECIMAL (5, 2)
-				)
-			AS previous_2_years_average
 	FROM 	annual_vaccinations
 -- WHERE year <> 2018 -- remove comment to check difference between ROWS and RANGE above
 )
