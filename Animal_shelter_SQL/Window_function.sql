@@ -571,31 +571,19 @@ FROM 	weight_gains
 ORDER BY ABS (weight_gain_in_3_months) DESC NULLS LAST;
 
 -- Solution
-WITH weight_gains
-AS
-(
+WITH weight_gains AS (
 SELECT	species, 
 		name,
 		checkup_time,
 		weight,
-		(weight - 	FIRST_VALUE (weight) 
-						OVER (PARTITION BY species, name 
-							  ORDER BY CAST (checkup_time AS DATE) ASC
-							  RANGE BETWEEN 	'3 months' PRECEDING 
-												AND 
-												'1 day' PRECEDING
-							 )
-		) AS weight_gain_in_3_months
+		(weight - 	FIRST_VALUE (weight) OVER (PARTITION BY species, name ORDER BY CAST (checkup_time AS DATE) ASC
+		RANGE BETWEEN 	'3 months' PRECEDING AND '1 day' PRECEDING)) AS weight_gain_in_3_months
 FROM 	routine_checkups
-),
-include_percentage
-AS
-(
-SELECT 	*,
-		CAST (100 * weight_gain_in_3_months / weight 
-			 AS DECIMAL (5, 2)
-			 ) AS percent_change
-FROM 	weight_gains
+), 
+	include_percentage AS (
+	SELECT 	*,
+	CAST (100 * weight_gain_in_3_months / weight AS DECIMAL (5, 2)) AS percent_change
+	FROM 	weight_gains
 )
 SELECT 	*
 FROM 	include_percentage
