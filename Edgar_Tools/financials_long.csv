@@ -1,0 +1,177 @@
+m d y,Metric,Value
+"Sep 28, 2024",Gross Margin %,46.21
+"Sep 30, 2023",Gross Margin %,44.13
+"Sep 24, 2022",Gross Margin %,43.31
+"Sep 25, 2021",Gross Margin %,41.78
+"Sep 26, 2020",Gross Margin %,38.23
+"Sep 28, 2019",Gross Margin %,37.82
+"Sep 29, 2018",Gross Margin %,38.34
+"Sep 30, 2017",Gross Margin %,38.47
+"Sep 24, 2016",Gross Margin %,39.08
+"Sep 26, 2015",Gross Margin %,40.06
+"Sep 27, 2014",Gross Margin %,38.59
+"Sep 28, 2024",Operating Margin %,31.51
+"Sep 30, 2023",Operating Margin %,29.82
+"Sep 24, 2022",Operating Margin %,30.29
+"Sep 25, 2021",Operating Margin %,29.78
+"Sep 26, 2020",Operating Margin %,24.15
+"Sep 28, 2019",Operating Margin %,24.57
+"Sep 29, 2018",Operating Margin %,26.69
+"Sep 30, 2017",Operating Margin %,26.76
+"Sep 24, 2016",Operating Margin %,27.84
+"Sep 26, 2015",Operating Margin %,30.48
+"Sep 27, 2014",Operating Margin %,28.72
+"Sep 28, 2024",Net Profit Margin %,23.97
+"Sep 30, 2023",Net Profit Margin %,25.31
+"Sep 24, 2022",Net Profit Margin %,25.31
+"Sep 25, 2021",Net Profit Margin %,25.88
+"Sep 26, 2020",Net Profit Margin %,20.91
+"Sep 28, 2019",Net Profit Margin %,21.24
+"Sep 29, 2018",Net Profit Margin %,22.41
+"Sep 30, 2017",Net Profit Margin %,21.09
+"Sep 24, 2016",Net Profit Margin %,21.19
+"Sep 26, 2015",Net Profit Margin %,22.85
+"Sep 27, 2014",Net Profit Margin %,21.61
+"Sep 28, 2024",Return on Equity (ROE),25.68
+"Sep 30, 2023",Return on Equity (ROE),27.51
+"Sep 24, 2022",Return on Equity (ROE),28.29
+"Sep 25, 2021",Return on Equity (ROE),26.97
+"Sep 26, 2020",Return on Equity (ROE),17.73
+"Sep 28, 2019",Return on Equity (ROE),16.32
+"Sep 29, 2018",Return on Equity (ROE),16.28
+"Sep 30, 2017",Return on Equity (ROE),12.88
+"Sep 24, 2016",Return on Equity (ROE),14.2
+"Sep 26, 2015",Return on Equity (ROE),18.38
+"Sep 27, 2014",Return on Equity (ROE),17.04
+"Sep 28, 2024",Current Ratio,1.08
+"Sep 30, 2023",Current Ratio,1.11
+"Sep 24, 2022",Current Ratio,1.35
+"Sep 25, 2021",Current Ratio,1.28
+"Sep 26, 2020",Current Ratio,1.12
+"Sep 28, 2019",Current Ratio,1.54
+"Sep 29, 2018",Current Ratio,1.36
+"Sep 30, 2017",Current Ratio,1.07
+"Sep 24, 2016",Current Ratio,0.88
+"Sep 26, 2015",Current Ratio,0.99
+"Sep 27, 2014",Current Ratio,0.87
+"Sep 28, 2024",FCF ($ Millions),"108,807"
+"Sep 30, 2023",FCF ($ Millions),"99,584"
+"Sep 24, 2022",FCF ($ Millions),"111,443"
+"Sep 25, 2021",FCF ($ Millions),"92,953"
+"Sep 26, 2020",FCF ($ Millions),"73,365"
+"Sep 28, 2019",FCF ($ Millions),"58,896"
+"Sep 29, 2018",FCF ($ Millions),"64,121"
+"Sep 30, 2017",FCF ($ Millions),"51,774"
+"Sep 24, 2016",FCF ($ Millions),"53,497"
+"Sep 26, 2015",FCF ($ Millions),"70,019"
+"Sep 27, 2014",FCF ($ Millions),"50,142"
+"Sep 28, 2024",Total Shareholders' Equity,"$364,980"
+"Sep 30, 2023",Total Shareholders' Equity,"$352,583"
+"Sep 24, 2022",Total Shareholders' Equity,"$352,755"
+"Sep 25, 2021",Total Shareholders' Equity,"$351,002"
+"Sep 26, 2020",Total Shareholders' Equity,"$323,888"
+"Sep 28, 2019",Total Shareholders' Equity,"$338,516"
+"Sep 29, 2018",Total Shareholders' Equity,"$365,725"
+"Sep 30, 2017",Total Shareholders' Equity,"$375,319"
+"Sep 24, 2016",Total Shareholders' Equity,"$321,686"
+"Sep 26, 2015",Total Shareholders' Equity,"$290,479"
+"Sep 27, 2014",Total Shareholders' Equity,"$231,839"
+"Sep 28, 2024",Total Current Assets,"$152,987"
+"Sep 30, 2023",Total Current Assets,"$143,566"
+"Sep 24, 2022",Total Current Assets,"$135,405"
+"Sep 25, 2021",Total Current Assets,"$134,836"
+"Sep 26, 2020",Total Current Assets,"$143,713"
+"Sep 28, 2019",Total Current Assets,"$162,819"
+"Sep 29, 2018",Total Current Assets,"$131,339"
+"Sep 30, 2017",Total Current Assets,"$128,645"
+"Sep 24, 2016",Total Current Assets,"$106,869"
+"Sep 26, 2015",Total Current Assets,"$89,378"
+"Sep 27, 2014",Total Current Assets,"$68,531"
+"Sep 28, 2024",Total Current Liabilities,"$176,392"
+"Sep 30, 2023",Total Current Liabilities,"$145,308"
+"Sep 24, 2022",Total Current Liabilities,"$153,982"
+"Sep 25, 2021",Total Current Liabilities,"$125,481"
+"Sep 26, 2020",Total Current Liabilities,"$105,392"
+"Sep 28, 2019",Total Current Liabilities,"$105,718"
+"Sep 29, 2018",Total Current Liabilities,"$116,866"
+"Sep 30, 2017",Total Current Liabilities,"$100,814"
+"Sep 24, 2016",Total Current Liabilities,"$79,006"
+"Sep 26, 2015",Total Current Liabilities,"$80,610"
+"Sep 27, 2014",Total Current Liabilities,"$63,448"
+"Sep 28, 2024",Cash from Operating Activities,"$118,254"
+"Sep 30, 2023",Cash from Operating Activities,"$110,543"
+"Sep 24, 2022",Cash from Operating Activities,"$122,151"
+"Sep 25, 2021",Cash from Operating Activities,"$104,038"
+"Sep 26, 2020",Cash from Operating Activities,"$80,674"
+"Sep 28, 2019",Cash from Operating Activities,"$69,391"
+"Sep 29, 2018",Cash from Operating Activities,"$77,434"
+"Sep 30, 2017",Cash from Operating Activities,"$64,225"
+"Sep 24, 2016",Cash from Operating Activities,"$66,231"
+"Sep 26, 2015",Cash from Operating Activities,"$81,266"
+"Sep 27, 2014",Cash from Operating Activities,"$59,713"
+"Sep 28, 2024",Payments for PP&E,"-$9,447"
+"Sep 30, 2023",Payments for PP&E,"-$10,959"
+"Sep 24, 2022",Payments for PP&E,"-$10,708"
+"Sep 25, 2021",Payments for PP&E,"-$11,085"
+"Sep 26, 2020",Payments for PP&E,"-$7,309"
+"Sep 28, 2019",Payments for PP&E,"-$10,495"
+"Sep 29, 2018",Payments for PP&E,"-$13,313"
+"Sep 30, 2017",Payments for PP&E,"-$12,451"
+"Sep 24, 2016",Payments for PP&E,"-$12,734"
+"Sep 26, 2015",Payments for PP&E,"-$11,247"
+"Sep 27, 2014",Payments for PP&E,"-$9,571"
+"Sep 28, 2024",Revenue:,"$182,795"
+"Sep 30, 2023",Revenue:,"$233,715"
+"Sep 24, 2022",Revenue:,"$215,639"
+"Sep 25, 2021",Revenue:,"$229,234"
+"Sep 26, 2020",Revenue:,"$265,595"
+"Sep 28, 2019",Revenue:,"$260,174"
+"Sep 29, 2018",Revenue:,"$274,515"
+"Sep 30, 2017",Revenue:,"$365,817"
+"Sep 24, 2016",Revenue:,"$394,328"
+"Sep 26, 2015",Revenue:,"$383,285"
+"Sep 27, 2014",Revenue:,"$391,035"
+"Sep 28, 2024",Services,"$18,063"
+"Sep 30, 2023",Services,"$19,909"
+"Sep 24, 2022",Services,"$24,348"
+"Sep 25, 2021",Services,"$29,980"
+"Sep 26, 2020",Services,"$37,190"
+"Sep 28, 2019",Services,"$46,291"
+"Sep 29, 2018",Services,"$53,768"
+"Sep 30, 2017",Services,"$68,425"
+"Sep 24, 2016",Services,"$78,129"
+"Sep 26, 2015",Services,"$85,200"
+"Sep 27, 2014",Services,"$96,169"
+"Sep 28, 2024",iPhone,"$101,991"
+"Sep 30, 2023",iPhone,"$155,041"
+"Sep 24, 2022",iPhone,"$136,700"
+"Sep 25, 2021",iPhone,"$141,319"
+"Sep 26, 2020",iPhone,"$166,699"
+"Sep 28, 2019",iPhone,"$142,381"
+"Sep 29, 2018",iPhone,"$137,781"
+"Sep 30, 2017",iPhone,"$191,973"
+"Sep 24, 2016",iPhone,"$205,489"
+"Sep 26, 2015",iPhone,"$200,583"
+"Sep 27, 2014",iPhone,"$201,183"
+"Sep 28, 2024",Mac,"$24,079"
+"Sep 30, 2023",Mac,"$25,471"
+"Sep 24, 2022",Mac,"$22,831"
+"Sep 25, 2021",Mac,"$25,850"
+"Sep 26, 2020",Mac,"$25,484"
+"Sep 28, 2019",Mac,"$25,740"
+"Sep 29, 2018",Mac,"$28,622"
+"Sep 30, 2017",Mac,"$35,190"
+"Sep 24, 2016",Mac,"$40,177"
+"Sep 26, 2015",Mac,"$29,357"
+"Sep 27, 2014",Mac,"$29,984"
+"Sep 28, 2024",iPad,"$30,283"
+"Sep 30, 2023",iPad,"$23,227"
+"Sep 24, 2022",iPad,"$20,628"
+"Sep 25, 2021",iPad,"$19,222"
+"Sep 26, 2020",iPad,"$18,805"
+"Sep 28, 2019",iPad,"$21,280"
+"Sep 29, 2018",iPad,"$23,724"
+"Sep 30, 2017",iPad,"$31,862"
+"Sep 24, 2016",iPad,"$29,292"
+"Sep 26, 2015",iPad,"$28,300"
+"Sep 27, 2014",iPad,"$26,694"
