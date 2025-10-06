@@ -1,0 +1,9 @@
+# twitter (X)
+
+[twitter]
+
+api_key = Il6thngo1gSau5kVC3IY3skUR
+api_key_secret = thf0lRo1wy0UNRyQFdzTQgXBZhE2srTz0lgZjxn72dR7hrNc67
+
+access_token = 1162933392-xkFFFaNptYKWryS1BfFdA5YYOTpdxsmNlpjsT3N
+access_token_secret = nRZ7mG2AVqtA28kHN2LHZNoEti5jlvcaY1Eyd9d92y9Xf
